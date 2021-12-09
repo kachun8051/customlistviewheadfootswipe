@@ -438,7 +438,7 @@ Private Sub EventHandler(mapRes As Map) 'ignore
 				pnlFoot.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
 				pnlFoot.SetBitmap(bmFooter)
 				pnlFoot.Tag = "Footer"
-				clv1.Add(pnlFoot, "F_" & headid)				
+				clv1.Add(pnlFoot, objSwipe.CreateItemValue("F_" & headid, Array()))				
 				timer.Enabled = True
 				Wait For timer_tick
 				timer.Enabled = False
@@ -522,7 +522,7 @@ Private Sub EventHandler(mapRes As Map) 'ignore
 				pnlHead_2.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
 				pnlHead_2.Tag = "Header"
 				'clv1.ReplaceAt(uiindex, pnlHead_2, 45dip, "H_" & headid)
-				clv1.ReplaceAt(uiindex, pnlHead_1, 45dip, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
+				clv1.ReplaceAt(uiindex, pnlHead_2, 45dip, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
 				clv1.Refresh
 		End Select
 	Catch
@@ -886,7 +886,11 @@ Private Sub clv1_VisibleRangeChanged (FirstIndex As Int, LastIndex As Int)
 		If i > FirstIndex - ExtraSize And i < LastIndex + ExtraSize Then
 			'Visible +
 			If pnl_1.NumberOfViews = 0 Then
-				Dim value() As String = Regex.Split("\_", clv1.GetValue(i))	
+				Dim objTmp As SwipeItem = clv1.GetValue(i)
+				If objTmp.IsInitialized = False Then
+					Continue
+				End If
+				Dim value() As String = Regex.Split("\_", objTmp.Value)	
 				Dim valOne As Int = value(1)			
 				Select value(0)
 					Case "H"
