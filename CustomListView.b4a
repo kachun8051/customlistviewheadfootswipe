@@ -1,0 +1,1054 @@
+﻿Build1=Default,hk.b4a.customlistview.headerfooter
+File1=collapsed2.png
+File10=sectionheader.png
+File2=content.json
+File3=content2.json
+File4=EditHead.bal
+File5=EditLine.bal
+File6=ExchangeLine.bal
+File7=InputBox.bal
+File8=main.bal
+File9=sectionfooter.png
+FileGroup1=Default Group
+FileGroup10=Default Group
+FileGroup2=Default Group
+FileGroup3=Default Group
+FileGroup4=Default Group
+FileGroup5=Default Group
+FileGroup6=Default Group
+FileGroup7=Default Group
+FileGroup8=Default Group
+FileGroup9=Default Group
+Group=Default Group
+Library1=byteconverter
+Library2=core
+Library3=inputmenu
+Library4=json
+Library5=stringutils
+Library6=xcustomlistview
+Library7=xui
+Library8=xui views
+Library9=viewsex
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: http://www.basic4ppc.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="14"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~'End of default text.~\n~
+Module1=clsMapOfList
+Module2=CLVSwipe
+Module3=modCommon
+NumberOfFiles=10
+NumberOfLibraries=9
+NumberOfModules=3
+Version=11
+@EndOfDesignText@
+#Region Module Attributes
+	#FullScreen: True
+	#IncludeTitle: True
+	#ApplicationLabel: CLV Head Foot Swipe Example
+	#VersionCode: 1
+	#CanInstallToExternalStorage: False
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: portrait
+#End Region
+
+'Activity module
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'These variables can be accessed from all modules.
+	Private xui As XUI
+	Private timer As Timer
+End Sub
+
+Sub Globals
+	Dim clv1 As CustomListView
+	'Swipe
+	Private objSwipe As CLVSwipe
+	Dim Dialog As B4XDialog
+	Private objMapOfList As clsMapOfList
+	Private edtHead As EditText
+	Private edtItem As EditText
+	Private edtQty As EditText
+	Private sprHead As Spinner
+	' OHead record the text before change	
+	Private edtOHead As EditText
+	' OItem record the item before change
+	Private edtOItem As EditText
+	' OQty record the qty before change
+	Private edtOQty As EditText
+	Private lblHead As Label
+	' bitmap for header and footer of clv1
+	Private bmHeader, bmFooter, bmCollapsed As B4XBitmap
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	Activity.LoadLayout("main.bal")
+	Activity.Title = "ListView With Section"	
+	
+	Activity.AddMenuItem("Add", "addItem")	
+	Activity.AddMenuItem("Reset", "reset")
+	Activity.AddMenuItem("Refresh", "refresh")
+	Activity.AddMenuItem("LogMapOne", "logmapone")
+	Activity.AddMenuItem("LogMapHeader", "logmapheader")
+	Activity.AddMenuItem("LogMapLine", "logmapline")
+	Activity.AddMenuItem("LogMapShow", "logmapshow")
+	Activity.AddMenuItem("LogMapSum", "logmapsum")
+	Activity.AddMenuItem("LogMapCount", "logmapcount")
+	Activity.AddMenuItem("resetbitmap", "resetbitmap")
+	Activity.AddMenuItem("back", "back")
+	
+	objMapOfList.Initialize(Me, "EventHandler")	
+	Dialog.Initialize(Activity)
+	timer.Initialize("timer", 100)
+	If bmHeader.IsInitialized = False Then
+		bmHeader = getBitmap("H")
+	End If
+	If bmFooter.IsInitialized = False Then
+		bmFooter = getBitmap("F")
+	End If
+	If bmCollapsed.IsInitialized = False Then
+		bmCollapsed = getBitmap("C")
+	End If
+	
+	objSwipe.Initialize(clv1, Me, "Swipe")
+	objSwipe.ActionColors = CreateMap( _
+		"詳細資料": xui.Color_Cyan, _
+		"修改": xui.Color_Yellow, _
+		"刪除": xui.Color_RGB(255, 192, 203), _
+		"換置": xui.Color_Green)
+	
+End Sub
+
+Sub Activity_Resume
+'	If clv1.IsInitialized Then
+'		clv1.clear
+'	End If
+'	If objMapOfList.IsInitialized And objMapOfList.Size = 0 Then
+'		objMapOfList.FillTheMap2
+'	End If
+	reset_click
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+	If timer.isInitialized Then
+		timer.Enabled = False
+	End If
+End Sub
+
+Private Sub resetbitmap_click
+	bmHeader = getBitmap("H")
+	bmFooter = getBitmap("F")
+End Sub
+
+Private Sub logmapone_click
+	objMapOfList.LogStructure("mapone", objMapOfList.mapOne)
+End Sub
+
+Private Sub logmapheader_click
+	objMapOfList.LogStructure("mapheader", objMapOfList.mapHeader)
+End Sub
+
+Private Sub logmapline_click
+	objMapOfList.LogStructure("mapline", objMapOfList.mapLine)
+End Sub
+
+Private Sub logmapshow_click
+	objMapOfList.LogStructure("mapshow", objMapOfList.mapShow)
+End Sub
+
+Private Sub logmapsum_click
+	objMapOfList.LogStructure("mapsum", objMapOfList.mapSum)
+End Sub
+
+Private Sub logmapcount_click
+	objMapOfList.LogStructure("mapcount", objMapOfList.mapCount)
+End Sub
+
+Private Sub reset_click
+	If clv1.IsInitialized = False Then
+		Return		
+	End If
+	If objMapOfList.IsInitialized = False Then
+		Return
+	End If
+	clv1.Clear
+	objMapOfList.ClearAll
+	objMapOfList.FillTheMap2
+End Sub
+
+Private Sub refresh_click
+	If clv1.IsInitialized = False Then
+		Return 
+	End If
+	If objMapOfList.IsInitialized = False Then
+		Return
+	End If
+	clv1.Clear
+	FillListView
+	clv1.Refresh
+End Sub
+
+Private Sub back_click
+	Activity.Finish
+End Sub
+
+Private Sub getBitmap(whichtype As String) As B4XBitmap
+	Dim lstType As List : lstType.Initialize2(Array As String("H", "h", "F", "f", "C", "c"))
+	If lstType.IndexOf(whichtype) = -1 Then
+		Return Null
+	End If
+	If whichtype.ToUpperCase = "H" Then		
+		Return LoadBitmap(File.DirAssets, "sectionheader.png")
+	End If
+	If whichtype.ToUpperCase = "F" Then		
+		Return LoadBitmap(File.DirAssets, "sectionfooter.png")		
+	End If
+	If whichtype.ToUpperCase = "C" Then
+		Return LoadBitmap(File.DirAssets, "collapsed2.png")
+	End If
+	Return Null
+End Sub
+
+Private Sub addItem_click
+	
+	If objMapOfList.IsInitialized = False Then
+		Return
+	End If	
+	Dim p As B4XView = xui.CreatePanel("")
+	p.SetLayoutAnimated(0, 0, 0, 250dip, 300dip) 'set the content size
+	p.LoadLayout("InputBox.bal")	
+	sprHead.DropdownBackgroundColor = Colors.White
+	sprHead.DropdownTextColor = Colors.Black
+	sprHead.TextColor = Colors.Black
+	edtHead.Visible = False
+	Dim lstChoice As List = objMapOfList.HeaderList
+	lstChoice.InsertAt(0, "choose...")
+	lstChoice.Add("new head...")
+	sprHead.AddAll(lstChoice)
+	sprHead.SelectedIndex = 0
+	Dim rs As ResumableSub = Dialog.ShowCustom(p, "Ok", "", "Cancel")
+	Wait For (rs) Complete (Result As Int)
+	If Result = xui.DialogResponse_Positive Then		
+		If sprHead.SelectedIndex = 0 Then 
+			'choose...
+			Return
+		End If				
+		If edtItem.Text = "" Or IsNumber(edtQty.Text) = False Then
+			Return
+		End If
+		If sprHead.SelectedIndex = sprHead.Size -1 And edtHead.Text <> "" Then
+			'add new head
+			objMapOfList.AddItem( _
+				CreateMap( _
+					"head": CreateMap("text": edtHead.Text), _
+					"line": CreateMap("item": edtItem.Text, "qty": edtQty.Text) _
+				) _
+			)
+		End If
+		If sprHead.SelectedIndex <> sprHead.Size -1 Then
+			'add to existing head
+			objMapOfList.AddItem( _
+				CreateMap( _
+					"head": CreateMap("text": sprHead.SelectedItem), _
+					"line": CreateMap("item": edtItem.Text, "qty": edtQty.Text) _
+				) _
+			)
+		End If
+	End If
+End Sub
+
+Private Sub editHead(idx As Int, headid As Int)
+	If objMapOfList.IsInitialized = False Then
+		Return
+	End If
+	Dim text As String = objMapOfList.getTextByHeadId(headid)
+	Dim p As B4XView = xui.CreatePanel("")
+	p.SetLayoutAnimated(0, 0, 0, 250dip, 90dip) 'set the content size
+	p.LoadLayout("EditHead.bal")	
+	edtOHead.Visible = False
+	edtOHead.Text = text
+	edtHead.Visible = True
+	edtHead.Text = text
+	timer.Enabled = True
+	Wait For timer_Tick
+	timer.Enabled = False
+	edtHead.RequestFocus
+	edtHead.SelectAll
+	Dim rs As ResumableSub = Dialog.ShowCustom(p, "Ok", "", "Cancel")
+	Wait For (rs) Complete (Result As Int)
+	If Result = xui.DialogResponse_Positive Then
+		If edtOHead.Text = edtHead.Text Then
+			' No Change
+			Return		
+		End If	
+		If edtHead.Text = "" Then
+			Return	
+		End If
+		objMapOfList.setUIIndex(idx)
+		objMapOfList.EditHead( _
+			CreateMap( _
+				"head": CreateMap("headid": headid, "otext": edtOHead.Text, "text": edtHead.Text) _
+			) _
+		)		
+	End If
+End Sub
+
+Private Sub editLine(idx As Int, headid As Int, lineid As Int)
+	If objMapOfList.IsInitialized = False Then
+		Return
+	End If
+	Dim text_1 As String = objMapOfList.getTextByHeadId(headid)	
+	Dim item_1 As String = objMapOfList.getItemByLineId(lineid)
+	Dim qty_1 As Int = objMapOfList.getQtyByLineId(lineid)
+	Dim p As B4XView = xui.CreatePanel("")
+	p.SetLayoutAnimated(0, 0, 0, 250dip, 220dip) 'set the content size
+	p.LoadLayout("EditLine.bal")
+	'edtHead.Text = text_1
+	'edtHead.Enabled = False
+	lblHead.Text = text_1
+	edtOItem.Text = item_1
+	edtItem.Text = item_1
+	edtOQty.Text = qty_1
+	edtQty.Text = qty_1
+	timer.Enabled = True
+	Wait For timer_Tick
+	timer.Enabled = False
+	edtItem.RequestFocus
+	edtItem.SelectAll
+	Dim rs As ResumableSub = Dialog.ShowCustom(p, "Ok", "", "Cancel")
+	Wait For (rs) Complete (Result As Int)
+	If Result = xui.DialogResponse_Positive Then
+		If edtOItem.Text = edtItem.Text And edtOQty.Text = edtQty.Text Then
+			'No Change
+			Return
+		End If
+		If edtItem.Text = "" Or IsNumber(edtQty.Text) = False Then
+			Return
+		End If
+		objMapOfList.setUIIndex(idx)
+		objMapOfList.EditLine( _
+			CreateMap( _
+				"line": CreateMap("headid": headid, "lineid": lineid, "oitem": edtOItem.Text, "item": edtItem.Text, _
+					"oqty": edtOQty.Text, "qty": edtQty.Text) _
+			) _
+		)
+	End If
+End Sub
+
+Private Sub exchangeLine(idx As Int, headid As Int, lineid As Int)
+	If objMapOfList.IsInitialized = False Then
+		Return
+	End If
+	Dim text_1 As String = objMapOfList.getTextByHeadId(headid)
+	Dim p As B4XView = xui.CreatePanel("")
+	p.SetLayoutAnimated(0, 0, 0, 250dip, 300dip) 'set the content size
+	p.LoadLayout("ExchangeLine.bal")
+	sprHead.DropdownBackgroundColor = Colors.White
+	sprHead.DropdownTextColor = Colors.Black
+	sprHead.TextColor = Colors.Black
+	edtHead.Visible = False
+	Dim lstChoice As List = objMapOfList.HeaderList
+	Dim foundidx As Int = lstChoice.IndexOf(text_1)
+	If foundidx > -1 Then
+		lstChoice.RemoveAt(foundidx)
+	End If
+	lstChoice.InsertAt(0, "choose...")
+	lstChoice.Add("new head...")
+	sprHead.AddAll(lstChoice)
+	sprHead.SelectedIndex = 0
+	lblHead.Text = text_1
+	Dim rs As ResumableSub = Dialog.ShowCustom(p, "Ok", "", "Cancel")
+	Wait For (rs) Complete (Result As Int)
+	If Result = xui.DialogResponse_Positive Then
+		If sprHead.SelectedIndex = 0 Then
+			Return
+		End If
+		If sprHead.SelectedIndex = sprHead.Size -1 And edtHead.Text = "" Then
+			Return
+		End If
+		If sprHead.SelectedIndex = sprHead.Size -1 Then
+			objMapOfList.exchangeLine(headid, edtHead.Text, lineid, idx)
+		Else
+			objMapOfList.exchangeLine(headid, sprHead.SelectedItem, lineid, idx)
+		End If		
+	End If
+End Sub
+
+Private Sub EventHandler(mapRes As Map) 'ignore
+	Dim action As String = mapRes.Get("action")	
+	Dim uiindex As Int = -1
+	Dim count As Int = -1
+	Dim headid As Int = -1
+	Dim lineid As Int = -1
+	If mapRes.ContainsKey("uiindex") Then
+		uiindex = mapRes.Get("uiindex")
+	End If
+	If mapRes.ContainsKey("count") Then
+		count = mapRes.Get("count")
+	End If
+	If mapRes.ContainsKey("headid") Then
+		headid = mapRes.Get("headid")
+	End If
+	If mapRes.ContainsKey("lineid") Then
+		lineid = mapRes.Get("lineid")
+	End If
+	Try
+		Select action
+			Case "filled"
+				FillListView
+			Case "headdeleted"
+				' First, delete the footer
+				clv1.RemoveAt(uiindex + count + 1)				
+				' Second, delete all children
+				Dim j As Int = 0
+				For j = count -1 To 0 Step -1
+					Dim temp As SwipeItem = clv1.GetValue(uiindex + j + 1)
+					LogColor(temp.Value, Colors.Blue)
+					clv1.RemoveAt(uiindex + j + 1)
+				Next
+				' Third, delete the header
+				LogIfIndexOutOfBound(356, uiindex)
+				clv1.RemoveAt(uiindex)
+				clv1.Refresh
+			Case "linedeleted"
+				Dim temp1 As SwipeItem = clv1.GetValue(uiindex)
+				LogColor(temp1.Value, Colors.Blue)
+				Dim pnlFoot As B4XView = xui.CreatePanel("")
+				pnlFoot.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlFoot.Tag = "Footer"
+				Dim footidx As Int = FindCurrFootIndex(headid)
+				If footidx = -1 Then ' impossible for block without footer
+					Return
+				End If				
+				clv1.ReplaceAt(footidx, pnlFoot, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+				LogIfIndexOutOfBound(369, uiindex)
+				clv1.RemoveAt(uiindex)
+				clv1.Refresh
+			Case "headadded"
+				If headid = -1 Or lineid = -1 Then
+					Return
+				End If
+				Dim pnlHead As B4XView = xui.CreatePanel("")
+				pnlHead.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlHead.Tag = "Header"
+				'clv1.Add(pnlHead, "H_" & headid)
+				clv1.Add(pnlHead, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
+				Dim pnlLine As B4XView = xui.CreatePanel("")
+				pnlLine.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 40dip)
+				pnlLine.Tag = "Line"
+				'clv1.Add(pnlLine, $"L_${headid}_${lineid}"$)
+				clv1.Add(pnlLine, objSwipe.CreateItemValue($"L_${headid}_${lineid}"$, Array("換置", "刪除", "修改")))
+				Dim pnlFoot As B4XView = xui.CreatePanel("")
+				pnlFoot.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlFoot.SetBitmap(bmFooter)
+				pnlFoot.Tag = "Footer"
+				clv1.Add(pnlFoot, "F_" & headid)				
+				timer.Enabled = True
+				Wait For timer_tick
+				timer.Enabled = False
+				clv1.JumpToItem(clv1.Size-1)
+			Case "lineadded"
+				If headid = -1 Or lineid = -1 Then
+					Return
+				End If
+				Dim pnlLine_1 As B4XView = xui.CreatePanel("")
+				pnlLine_1.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 40dip)
+				pnlLine_1.Tag = "Line"
+				Dim pnlFoot_1 As B4XView = xui.CreatePanel("")
+				pnlFoot_1.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlFoot_1.Tag = "Footer"
+				Dim currFootid As Int = FindCurrFootIndex(headid)
+				If currFootid = -1 Then
+					' impossible for block without footer
+					Return
+				End If
+				LogIfIndexOutOfBound(408, currFootid)
+				'clv1.InsertAt(currFootid, pnlLine_1, $"L_${headid}_${lineid}"$)
+				clv1.InsertAt(currFootid, pnlLine_1, objSwipe.CreateItemValue($"L_${headid}_${lineid}"$, Array("換置", "刪除", "修改")))
+				'clv1.ReplaceAt(currFootid+1, pnlFoot_1, 45dip, "F_" & headid)
+				clv1.ReplaceAt(currFootid+1, pnlFoot_1, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+				timer.Enabled = True
+				Wait For timer_tick
+				timer.Enabled = False					
+				clv1.JumpToItem(currFootid)
+				clv1.Refresh
+			Case "exchanged"
+				'Dim pnltmp As B4XView = clv1.GetPanel(uiindex)
+				ExchangedHandler(mapRes)
+			Case "headedited"
+				Dim pnlHead As B4XView = xui.CreatePanel("")
+				pnlHead.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlHead.Tag = "Header"
+				'clv1.ReplaceAt(uiindex, pnlHead, 45dip, "H_" & headid)
+				clv1.ReplaceAt(uiindex, pnlHead, 45dip, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))  
+				clv1.Refresh
+			Case "lineedited"
+				Dim pnlLine_2 As B4XView = xui.CreatePanel("")
+				pnlLine_2.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 40dip)
+				pnlLine_2.Tag = "Line"
+				'clv1.ReplaceAt(uiindex, pnlLine_2, 40dip, $"L_${headid}_${lineid}"$)
+				clv1.ReplaceAt(uiindex, pnlLine_2, 40dip, objSwipe.CreateItemValue($"L_${headid}_${lineid}"$, Array("換置", "刪除", "修改")))
+				Dim footidx_1 As Int = FindCurrFootIndex(headid)
+				If footidx_1 = -1 Then
+					Return
+				End If
+				Dim pnlFoot_2 As B4XView = xui.CreatePanel("")
+				pnlFoot_2.SetLayoutAnimated(0,0,0,clv1.AsView.Width, 45dip)
+				pnlFoot_2.Tag = "Footer"
+				'clv1.ReplaceAt(footidx_1, pnlFoot_2, 45dip, "F_" & headid)
+				clv1.ReplaceAt(footidx_1, pnlFoot_2, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+				clv1.Refresh
+			Case "collapsed"
+				' hide the foot
+				clv1.ResizeItem(uiindex + count + 1, 0dip)				
+				' hide lines
+				Dim i As Int = 0
+				For i = 0 To count -1
+					clv1.ResizeItem(uiindex+i+1, 0dip)
+				Next				
+				'refresh the head
+				Dim pnlHead_1 As B4XView = xui.CreatePanel("")
+				pnlHead_1.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlHead_1.Tag = "Header"
+				'clv1.ReplaceAt(uiindex, pnlHead_1, 45dip, "H_" & headid)
+				clv1.ReplaceAt(uiindex, pnlHead_1, 45dip, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
+				clv1.Refresh
+			Case "expanded"
+				' show the foot
+				clv1.ResizeItem(uiindex + count + 1, 45dip)
+				' show lines
+				Dim j As Int = 0
+				For j = 0 To count -1
+					clv1.ResizeItem(uiindex + j + 1, 40dip)
+				Next				
+				'refresh the head
+				Dim pnlHead_2 As B4XView = xui.CreatePanel("")
+				pnlHead_2.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlHead_2.Tag = "Header"
+				'clv1.ReplaceAt(uiindex, pnlHead_2, 45dip, "H_" & headid)
+				clv1.ReplaceAt(uiindex, pnlHead_1, 45dip, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
+				clv1.Refresh
+		End Select
+	Catch
+		LogColor("EventHandler (" & action & "): " & CRLF & LastException, Colors.Red)
+	End Try
+	
+End Sub
+
+Private Sub ExchangedHandler(i_mapRes As Map)
+	'
+	Dim headid As Int = -1
+	If i_mapRes.ContainsKey("headid") Then
+		headid = i_mapRes.Get("headid")
+	End If
+	Dim oheadid As Int = -1
+	If i_mapRes.ContainsKey("oheadid") Then
+		oheadid = i_mapRes.Get("oheadid")
+	End If
+	Dim uiindex As Int = -1
+	If i_mapRes.ContainsKey("uiindex") Then
+		uiindex = i_mapRes.Get("uiindex")
+	End If
+	Try
+		Select i_mapRes.Get("status")
+			Case 0 ' Transfer in, Transfer out
+				Dim pnlLine As B4XView = xui.CreatePanel("")
+				pnlLine.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 40dip)
+				pnlLine.Tag = "Line"
+				'the lineid of value is kept and transfered
+				Dim OLineid As Int = UiindexToLineid(uiindex)
+				If OLineid = -1 Then
+					Return
+				End If
+				Dim pnlFoot As B4XView = xui.CreatePanel("")
+				pnlFoot.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlFoot.Tag = "Footer"
+				Dim pnlOFoot As B4XView = xui.CreatePanel("")
+				pnlOFoot.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlOFoot.Tag = "Footer"
+				Dim value As String = $"L_${headid}_${OLineid}"$
+				Dim prevFootId As Int = FindCurrFootIndex(oheadid)
+				Dim currFootid As Int = FindCurrFootIndex(headid)		
+				If currFootid = -1 Then
+					Return
+				End If
+				If currFootid < uiindex Then 
+					' The larger index do first	i.e. uiindex do first
+					LogIfIndexOutOfBound(513, uiindex)
+					clv1.ReplaceAt(prevFootId, pnlOFoot, 45dip, objSwipe.CreateItemValue("F_" & oheadid, Array()))
+					clv1.RemoveAt(uiindex)
+					LogIfIndexOutOfBound(516, currFootid)
+					clv1.ReplaceAt(currFootid, pnlFoot, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+					clv1.InsertAt(currFootid, pnlLine, objSwipe.CreateItemValue(value, Array("換置", "刪除", "修改")))
+				Else
+					' The larger index do first	i.e. currFootid do first
+					LogIfIndexOutOfBound(521, currFootid)						
+					clv1.ReplaceAt(currFootid, pnlFoot, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+					clv1.InsertAt(currFootid, pnlLine, objSwipe.CreateItemValue(value, Array("換置", "刪除", "修改")))
+					LogIfIndexOutOfBound(524, uiindex)
+					clv1.ReplaceAt(prevFootId, pnlOFoot, 45dip, objSwipe.CreateItemValue("F_" & oheadid, Array()))
+					clv1.RemoveAt(uiindex)						
+				End If				
+				clv1.Refresh
+				timer.Enabled = True
+				Wait For timer_tick
+				timer.Enabled = False
+				If currFootid > clv1.Size -1 Then
+					currFootid = clv1.Size -1
+				End If
+				clv1.JumpToItem(currFootid)
+			Case 1 ' Transfer in, delete
+				Dim pnlLine_1 As B4XView = xui.CreatePanel("")
+				pnlLine_1.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 40dip)
+				pnlLine_1.Tag = "Line"
+				'the lineid of value is kept and transfered
+				Dim OLineid_1 As Int = UiindexToLineid(uiindex)
+				If OLineid_1 = -1 Then
+					Return
+				End If					
+				Dim pnlFoot_1 As B4XView = xui.CreatePanel("")
+				pnlFoot_1.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlFoot_1.Tag = "Footer"								
+				Dim value_1 As String =  $"L_${headid}_${OLineid_1}"$
+				Dim currFootid_1 As Int = FindCurrFootIndex(headid)				
+				If currFootid_1 = -1 Then
+					Return
+				End If
+				If currFootid_1 < uiindex Then 
+					' The larger index do first i.e. uiindex do first
+					LogIfIndexOutOfBound(556, uiindex+1)
+					clv1.RemoveAt(uiindex+1) ' remove foot
+					LogIfIndexOutOfBound(558, uiindex)
+					clv1.RemoveAt(uiindex) 	 ' remove line
+					LogIfIndexOutOfBound(560, uiindex-1)
+					clv1.RemoveAt(uiindex-1) ' remove head
+					LogIfIndexOutOfBound(562, currFootid_1)
+					clv1.ReplaceAt(currFootid_1, pnlFoot_1, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+					clv1.InsertAt(currFootid_1, pnlLine_1, objSwipe.CreateItemValue(value_1, Array("換置", "刪除", "修改")))
+				Else
+					' The larger index do first i.e. currFootid do first
+					clv1.ReplaceAt(currFootid_1, pnlFoot_1, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+					LogIfIndexOutOfBound(568, currFootid_1)
+					clv1.InsertAt(currFootid_1, pnlLine_1, objSwipe.CreateItemValue(value_1, Array("換置", "刪除", "修改")))
+					LogIfIndexOutOfBound(570, uiindex+1)
+					clv1.RemoveAt(uiindex+1) ' remove foot
+					LogIfIndexOutOfBound(572, uiindex)
+					clv1.RemoveAt(uiindex) 	 ' remove line
+					LogIfIndexOutOfBound(574, uiindex-1)
+					clv1.RemoveAt(uiindex-1) ' remove head						
+				End If			
+				clv1.Refresh
+				timer.Enabled = True
+				Wait For timer_tick
+				timer.Enabled = False		
+				If currFootid_1 > clv1.Size -1 Then
+					currFootid_1 = clv1.Size -1		
+				End If
+				clv1.JumpToItem(currFootid_1)
+			Case 2 ' insert, transfer out
+				Dim pnlHead_2 As B4XView = xui.CreatePanel("")
+				pnlHead_2.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlHead_2.SetBitmap(bmHeader)
+				pnlHead_2.Tag = "Header"
+				Dim pnlLine_2 As B4XView = xui.CreatePanel("")
+				pnlLine_2.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 40dip)
+				pnlLine_2.Tag = "Line"
+				Dim pnlFoot_2 As B4XView = xui.CreatePanel("")
+				pnlFoot_2.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlFoot_2.SetBitmap(bmFooter)
+				pnlFoot_2.Tag = "Footer"
+				Dim pnlOFoot_2 As B4XView = xui.CreatePanel("")
+				pnlOFoot_2.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlOFoot_2.SetBitmap(bmFooter)
+				pnlOFoot_2.Tag = "Footer"
+				'the lineid of value is kept and transfered
+				Dim OLineid_2 As Int = UiindexToLineid(uiindex)
+				If OLineid_2 = -1 Then
+					Return
+				End If
+				' Must add before delete
+				Dim value_2 As String = $"L_${headid}_${OLineid_2}"$
+				Dim prevFootId_2 As Int = FindCurrFootIndex(oheadid)
+				clv1.Add(pnlHead_2, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))				
+				clv1.Add(pnlLine_2, objSwipe.CreateItemValue(value_2, Array("換置", "刪除", "修改")))
+				clv1.Add(pnlFoot_2, objSwipe.CreateItemValue("F_" & headid, Array()))
+				LogIfIndexOutOfBound(612, uiindex)								
+				clv1.ReplaceAt(prevFootId_2, pnlOFoot_2, 45dip, objSwipe.CreateItemValue("F_" & oheadid, Array()))
+				clv1.RemoveAt(uiindex) 	 ' remove line				
+				timer.Enabled = True
+				Wait For timer_tick
+				timer.Enabled = False
+				clv1.JumpToItem(clv1.Size-1)
+			Case 3 ' insert, delete
+				Dim pnlHead_3 As B4XView = xui.CreatePanel("")
+				pnlHead_3.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlHead_3.SetBitmap(bmHeader)
+				pnlHead_3.Tag = "Header"
+				Dim pnlLine_3 As B4XView = xui.CreatePanel("")
+				pnlLine_3.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 40dip)
+				pnlLine_3.Tag = "Line"
+				Dim pnlFoot_3 As B4XView = xui.CreatePanel("")
+				pnlFoot_3.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+				pnlFoot_3.SetBitmap(bmFooter)
+				pnlFoot_3.Tag = "Footer"
+				'the lineid of value is kept and transfered
+				Dim OLineid_3 As Int = UiindexToLineid(uiindex)
+				If OLineid_3 = -1 Then
+					Return
+				End If
+				' Must add before delete
+				Dim value_3 As String = $"L_${headid}_${OLineid_3}"$
+				clv1.Add(pnlHead_3, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
+				clv1.Add(pnlLine_3, objSwipe.CreateItemValue(value_3, Array("換置", "刪除", "修改")))
+				clv1.Add(pnlFoot_3, objSwipe.CreateItemValue("F_" & headid, Array()))
+				LogIfIndexOutOfBound(641, uiindex+1)
+				clv1.RemoveAt(uiindex+1) ' remove foot
+				LogIfIndexOutOfBound(643, uiindex)
+				clv1.RemoveAt(uiindex) 	 ' remove line
+				LogIfIndexOutOfBound(646, uiindex-1)
+				clv1.RemoveAt(uiindex-1) ' remove head				
+				timer.Enabled = True
+				Wait For timer_tick
+				timer.Enabled = False
+				clv1.JumpToItem(clv1.Size-1)
+			Case Else
+				Return	
+		End Select
+	Catch
+		Dim errmsg As String = "ExchangedHandler: " & LastException.Message
+		LogColor(errmsg, Colors.red)
+		ToastMessageShow(errmsg, True)
+	End Try	
+End Sub
+
+Private Sub UiindexToLineid(uiindex As Int) As Int
+	Dim obj As SwipeItem = clv1.GetValue(uiindex)
+	Dim value As String = obj.Value
+	Dim arr() As String = Regex.Split("\_", value)
+	If arr.Length <> 3 Then
+		Return -1
+	End If
+	Return arr(2)
+End Sub
+
+' return index of current block's footer by giving headid
+Private Sub FindCurrFootIndex(headid As Int) As Int
+	Dim idx_1 As Int = -1
+	Dim i As Int = 0
+	For i = 0 To clv1.Size-1
+		Dim obj1 As SwipeItem = clv1.GetValue(i)
+		If obj1.Value = "H_" & headid Then
+			idx_1 = i
+			Exit
+		End If
+	Next
+	If idx_1 = -1 Then
+		Return -1
+	End If
+	Dim idx_2 As Int = -1
+	Dim j As Int = 0
+	For j = idx_1 + 1 To clv1.Size -1
+		Dim obj2 As SwipeItem = clv1.GetValue(j)
+		Dim tempvalue As String = obj2.Value
+		If tempvalue.SubString2(0, 1) = "F" Then
+			idx_2 = j			
+			Exit
+		End If
+	Next
+	Return idx_2
+End Sub
+
+Private Sub clv1_ItemClick (Index As Int, Value As Object)		
+	If objMapOfList.IsInitialized = False Then
+		Return
+	End If
+	objSwipe.CloseLastSwiped
+	Dim objVal As SwipeItem = Value
+	Dim strVal As String = objVal.Value
+	Dim str As String = objMapOfList.getContent(strVal)	
+	If str.IndexOf("^") = -1 Then
+		Dim arrH() As String = Regex.Split("\_", strVal)
+		Dim head_id As Int = arrH(1)
+		If objMapOfList.isHeadExpanded(head_id) Then
+			objMapOfList.collapseHead(head_id, Index)
+		Else
+			objMapOfList.expandHead(head_id, Index)
+		End If
+		Return
+	End If	
+	Dim arr() As String = Regex.Split("\^", str)	
+	If arr.Length = 2 Then
+		Dim msg1 As String = $"Index: ${Index}${CRLF}Value: ${strVal}${CRLF}Item: ${arr(0)}${CRLF}Qty: ${arr(1)}"$
+		Log("ItemClick (Line) - " & CRLF & msg1.Replace(CRLF, "; "))
+		Msgbox2Async(msg1, "Line Info", "OK", "", "", Null, True)
+		Return
+	End If	
+End Sub
+
+Private Sub Swipe_ActionClicked(Index As Int, ActionText As String)
+	Log($"Action clicked: ${Index}, ${ActionText}"$)
+	Dim objTemp As SwipeItem = clv1.GetValue(Index)
+	Dim strTemp As String = objTemp.Value
+	Dim arrTemp() As String = Regex.Split("\_", strTemp)
+	Dim tagtype As String = arrTemp(0)
+	Dim head_id As Int = arrTemp(1)
+	Select ActionText
+		Case "詳細資料"
+			Dim str As String = objMapOfList.getContent(strTemp)
+			Dim msg As String = $"Index: ${Index}${CRLF}Value: ${strTemp}${CRLF}Text: ${str}"$
+			Log("ItemClick (Head) - " & CRLF & msg.Replace(CRLF, "; "))
+			Msgbox2Async(msg, "Head Info", "OK", "", "", Null, True)
+		Case "修改"
+			If tagtype = "H" Then
+				editHead(Index, arrTemp(1))
+				Return
+			End If
+			If tagtype = "L" Then
+				editLine(Index, arrTemp(1), arrTemp(2))
+				Return
+			End If
+		Case "刪除"
+			If tagtype = "H" Then
+				objMapOfList.setUIIndex(Index)
+				'arrTemp(1) is header id
+				objMapOfList.DeleteHeader(arrTemp(1))
+				Return
+			End If
+			If tagtype = "L" Then
+				objMapOfList.setUIIndex(Index)
+				'arrTemp(1) is item's header id
+				'arrTemp(2) is item id
+				objMapOfList.DeleteItem(arrTemp(1), arrTemp(2))
+				Return
+			End If
+		Case "換置"
+			exchangeLine(Index, head_id, arrTemp(2))
+	End Select
+End Sub
+
+'Private Sub clv1_ItemLongClick(Index As Int, Value As Object)
+'	'Type conversion
+'	Dim strTemp As String = Value	
+'	Dim arrTemp() As String = Regex.Split("\_", strTemp)
+'	Dim tagtype As String = arrTemp(0)
+'	If tagtype <> "H" And tagtype <> "L" Then
+'		Return 
+'	End If
+'	'Type conversion
+'	Dim head_id As Int = arrTemp(1)
+'	Dim lstMenu As List
+'	If tagtype = "H" Then ' e.g. H_1		
+'		lstMenu.Initialize2(Array As String("headinfo", "edit", "delete", "cancel"))
+'	End If
+'	If tagtype = "L" Then ' e.g. L_2_3
+'		lstMenu.Initialize2(Array As String("edit", "delete", "exchange", "cancel"))
+'	End If
+'	
+'	Select modCommon.popupMenu2(lstMenu)
+'		Case "headinfo"
+'			Dim str As String = objMapOfList.getContent(Value)
+'			Dim msg As String = $"Index: ${Index}${CRLF}Value: ${Value}${CRLF}Text: ${str}"$
+'			Log("ItemClick (Head) - " & CRLF & msg.Replace(CRLF, "; "))
+'			Msgbox2Async(msg, "Head Info", "OK", "", "", Null, True)
+'		Case "edit"
+'			If tagtype = "H" Then
+'				editHead(Index, arrTemp(1))
+'				Return
+'			End If
+'			If tagtype = "L" Then
+'				editLine(Index, arrTemp(1), arrTemp(2))
+'				Return				
+'			End If			
+'		Case "delete"			
+'			If tagtype = "H" Then
+'				objMapOfList.setUIIndex(Index)
+'				'arrTemp(1) is header id
+'				objMapOfList.DeleteHeader(arrTemp(1))				
+'				Return
+'			End If
+'			If tagtype = "L" Then
+'				objMapOfList.setUIIndex(Index)
+'				'arrTemp(1) is item's header id
+'				'arrTemp(2) is item id
+'				objMapOfList.DeleteItem(arrTemp(1), arrTemp(2))				
+'				Return
+'			End If
+'		Case "exchange"
+'			exchangeLine(Index, head_id, arrTemp(2))
+'		Case "cancel"
+'			Return
+'		Case Else
+'			Return
+'	End Select
+'End Sub
+
+Private Sub clv1_VisibleRangeChanged (FirstIndex As Int, LastIndex As Int)
+	Dim ExtraSize As Int = 18 'Extra Size MUST cover the whole screen + extra 2 rows in case of head add or exchange
+	
+	For i = 0 To clv1.Size - 1
+		Dim pnl_1 As B4XView = clv1.GetPanel(i)
+		If i > FirstIndex - ExtraSize And i < LastIndex + ExtraSize Then
+			'Visible +
+			If pnl_1.NumberOfViews = 0 Then
+				Dim value() As String = Regex.Split("\_", clv1.GetValue(i))	
+				Dim valOne As Int = value(1)			
+				Select value(0)
+					Case "H"
+						If objMapOfList.mapHeader.ContainsKey(valOne) Then
+							Dim mapEntry1 As Map = objMapOfList.mapHeader.Get(valOne)
+							Dim myTitle As String = mapEntry1.Get("text")
+							Dim isExpanded As Boolean = False
+							If objMapOfList.IsInitialized Then
+								isExpanded = objMapOfList.isHeadExpanded(valOne)
+							End If
+							EquipHeaderPanel(pnl_1, "HEADER #" & valOne & " " & myTitle, isExpanded)
+							If isExpanded Then
+								' Refresh the Footer when expanded
+								Dim itsfootid As Int = FindCurrFootIndex(valOne)
+								Dim pnl_footer As B4XView = clv1.GetPanel(itsfootid)
+								Dim summary As String = $"Count: ${objMapOfList.mapCount.get(valOne)}; Sum: ${objMapOfList.mapSum.get(valOne)}"$
+								EquipFooterPanel(pnl_footer, "FOOTER #" & valOne & "; " & summary)
+							End If
+						End If						
+					Case "L"						
+						Dim valTwo As Int = value(2)
+						If objMapOfList.mapLine.ContainsKey(valTwo) Then
+							Dim mapEntry2 As Map = objMapOfList.mapLine.Get(valTwo)
+							Dim myQty As Int = mapEntry2.Get("qty")
+							Dim myItem As String = mapEntry2.Get("item")
+							EquipItemPanel(pnl_1, "LINE #" & valTwo & " " & myItem, myQty, 40dip)
+						End If		
+					Case "F"
+						If objMapOfList.mapHeader.ContainsKey(valOne) Then
+							Dim summary_1 As String = $"Count: ${objMapOfList.mapCount.get(valOne)}; Sum: ${objMapOfList.mapSum.get(valOne)}"$
+							EquipFooterPanel(pnl_1, "FOOTER #" & valOne & "; " & summary_1)
+						End If
+					Case Else
+						Continue
+				End Select				
+			End If
+		End If
+	Next
+End Sub
+
+Sub FillListView()
+	If objMapOfList.IsInitialized = False Then
+		Return
+	End If
+	For Each key_1 As Int In objMapOfList.mapOne.Keys
+		Dim lstTmp As List = objMapOfList.mapOne.Get(key_1)
+		If lstTmp.IsInitialized = False Then
+			Continue
+		End If
+		Dim pnlHead As B4XView = xui.CreatePanel("")
+		pnlHead.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+		pnlHead.Tag = "Header"
+		clv1.Add(pnlHead, objSwipe.CreateItemValue("H_" & key_1, Array("刪除", "修改", "詳細資料")))
+		For Each entry_1 As Int In lstTmp
+			Dim pnlLine As B4XView = xui.CreatePanel("")
+			pnlLine.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 40dip)
+			pnlLine.Tag = "Line"			
+			clv1.Add(pnlLine, objSwipe.CreateItemValue($"L_${key_1}_${entry_1}"$, Array("換置", "刪除", "修改")))
+		Next
+		Dim pnlFoot As B4XView = xui.CreatePanel("")
+		pnlFoot.SetLayoutAnimated(0, 0, 0, clv1.AsView.Width, 45dip)
+		pnlFoot.Tag = "Footer"
+		clv1.Add(pnlFoot, objSwipe.CreateItemValue("F_" & key_1, Array()))
+	Next
+End Sub
+
+' Pass panel as Reference
+Sub EquipItemPanel(pItem As Panel, Text As String, Text2 As String, Height As Int) 
+	
+	Dim lbl As Label
+	lbl.Initialize("")
+	lbl.Gravity = Bit.Or(Gravity.CENTER_VERTICAL, Gravity.LEFT)
+	lbl.Text = Text
+	lbl.TextSize = 16
+	lbl.TextColor = Colors.Black	
+	Dim lbl2 As Label
+	lbl2.Initialize("")
+	lbl2.Gravity = Bit.Or(Gravity.CENTER_VERTICAL, Gravity.LEFT)
+	lbl2.TextSize = 16
+	lbl2.TextColor = Colors.Black
+	lbl2.Text = Text2	
+	pItem.AddView(lbl, 15dip, 2dip, 150dip, Height - 4dip) 'view #0
+	pItem.AddView(lbl2, 280dip, 2dip, 50dip, Height - 4dip) 'view #2
+End Sub
+' Pass panel as Reference
+Sub EquipHeaderPanel(pHeader As B4XView, Text As String, isExpanded As Boolean) 
+	
+	pHeader.Color = Colors.DarkGray
+
+	Dim lbl As Label : lbl.Initialize("")
+	lbl.Gravity = Bit.Or(Gravity.CENTER_VERTICAL, Gravity.CENTER_HORIZONTAL)
+	lbl.Text = Text
+	lbl.TextSize = 16
+	lbl.Typeface = Typeface.DEFAULT_BOLD
+	lbl.TextColor = Colors.White	
+	Dim lbl1 As Label : lbl1.Initialize("")
+	lbl1.Gravity = Bit.Or(Gravity.CENTER_VERTICAL, Gravity.RIGHT)
+	If isExpanded Then
+		lbl1.Text = modCommon.UTS(0x1F53A) ' ^
+		pHeader.SetBitmap(bmHeader)
+	Else
+		lbl1.Text = modCommon.UTS(0x1F53B) ' v
+		pHeader.SetBitmap(bmCollapsed)
+	End If
+	pHeader.AddView(lbl, 5dip, 2dip, 320dip, 45dip)
+	pHeader.AddView(lbl1, 280dip, 2dip, 20dip, 45dip)
+End Sub
+' Pass panel as Reference
+Sub EquipFooterPanel(pFooter As B4XView, Text As String) 
+	
+	pFooter.Color = Colors.Gray
+	pFooter.SetBitmap(bmFooter)
+	Dim lbl As Label : lbl.Initialize("")
+	lbl.Gravity = Bit.Or(Gravity.TOP, Gravity.CENTER_HORIZONTAL)
+	lbl.Text = Text
+	lbl.TextSize = 16
+	lbl.Typeface = Typeface.DEFAULT_BOLD
+	lbl.TextColor = Colors.White	
+	Dim lbl1 As Label : lbl1.Initialize("")
+	lbl1.Gravity = Bit.Or(Gravity.CENTER_VERTICAL, Gravity.RIGHT)
+	pFooter.RemoveAllViews
+	pFooter.AddView(lbl, 5dip, 2dip, 320dip, 45dip)
+	pFooter.AddView(lbl1, 280dip, 2dip, 20dip, 45dip)
+End Sub
+
+Private Sub sprHead_ItemClick (Position As Int, Value As Object)
+	
+	If Position = sprHead.Size - 1 Then 'new item
+		edtHead.Visible = True
+	Else
+		edtHead.Visible = False		
+	End If
+	timer.Enabled = True
+	Wait For timer_Tick
+	timer.Enabled = False
+	edtHead.Text = ""
+	edtHead.RequestFocus
+	edtHead.SelectAll	
+End Sub
+
+Private Sub LogIfIndexOutOfBound(whichline As Int, idx As Int)
+	If clv1.IsInitialized = False Then
+		Return
+	End If
+	If idx >= clv1.Size Then
+		Dim err As String = "Which line: " & whichline & CRLF & _
+			"Index: " & idx & CRLF & _
+			"clv1 size: " & clv1.Size
+		LogColor(err, Colors.Red)
+		Msgbox2Async(err, "IndexOutOfBound", "OK", "", "", Null, True)
+	End If
+End Sub
+
+Private Sub edtQty_FocusChanged (HasFocus As Boolean)
+	If HasFocus Then
+		timer.Enabled = True
+		Wait For timer_tick
+		timer.Enabled = False
+		edtQty.SelectAll
+	End If
+End Sub
+
+Private Sub clv1_ScrollChanged (Offset As Int)
+	objSwipe.CloseLastSwiped
+End Sub
