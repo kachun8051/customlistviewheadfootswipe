@@ -146,6 +146,7 @@ Public Sub exchangeLine(i_oheadid As Int, i_headText As String, i_lineid As Int,
 	End If
 	Dim isHeadCreated As Boolean = False
 	Dim isHeadDeleted As Boolean = False
+	Dim isTargetShown As Boolean = True
 	' Target
 	Dim headid As Int = getHeadIdByText(i_headText)
 	If headid = -1 Then
@@ -160,12 +161,18 @@ Public Sub exchangeLine(i_oheadid As Int, i_headText As String, i_lineid As Int,
 		mapOne.Put(headid, lst)
 		mapSum.Put(headid, getHeaderSum(headid))
 		mapCount.Put(headid, 1)
+		isTargetShown = True
 '		targetcount = 1
 	Else
 		isHeadCreated = False
 		Dim lstTarget As List = mapOne.Get(headid)
 		If lstTarget.IsInitialized = False Then
 			Return False
+		End If
+		If 0 = mapShow.Get(headid) Then
+			isTargetShown = False 
+		Else
+			isTargetShown = True
 		End If
 		lstTarget.Add(i_lineid)
 		mapSum.Put(headid, getHeaderSum(headid))
@@ -199,6 +206,7 @@ Public Sub exchangeLine(i_oheadid As Int, i_headText As String, i_lineid As Int,
 		CallSubDelayed2(m_callback, m_event, _ 
 			CreateMap("action": "exchanged", _ 
 				"isheadcreated": isHeadCreated, "isheaddeleted": isHeadDeleted, _ 
+				"istargetshown": isTargetShown, _
 				"status": getStatus(isHeadCreated, isHeadDeleted), _ 
 				"uiindex": i_ui, "headid": headid, "oheadid": i_oheadid))
 	End If

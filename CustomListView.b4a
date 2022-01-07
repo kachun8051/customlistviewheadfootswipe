@@ -465,8 +465,12 @@ Private Sub EventHandler(mapRes As Map) 'ignore
 				clv1.ReplaceAt(currFootid+1, pnlFoot_1, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
 				timer.Enabled = True
 				Wait For timer_tick
-				timer.Enabled = False					
-				clv1.JumpToItem(currFootid)
+				timer.Enabled = False	
+				If currFootid > clv1.Size -1 Then
+					clv1.JumpToItem(clv1.Size-1)
+				Else
+					clv1.JumpToItem(currFootid)
+				End If				
 				clv1.Refresh
 			Case "exchanged"
 				'Dim pnltmp As B4XView = clv1.GetPanel(uiindex)
@@ -495,8 +499,15 @@ Private Sub EventHandler(mapRes As Map) 'ignore
 				clv1.ReplaceAt(footidx_1, pnlFoot_2, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
 				clv1.Refresh
 			Case "collapsed"
+				Dim footidx_1 As Int = uiindex + count + 1
+				LogColor("Collapsed - " & CRLF & "head index: " & uiindex & CRLF & "count: " & count & CRLF & "foot index: " & footidx_1, Colors.Blue)
+				If footidx_1 > clv1.Size -1 Then
+					Dim errmsg_1 As String = $"collapsed: foot index ${footidx_1} exceed the last index ${clv1.Size -1}!!!"$
+					ToastMessageShow(errmsg_1, True)
+					Return
+				End If				
 				' hide the foot
-				clv1.ResizeItem(uiindex + count + 1, 0dip)				
+				clv1.ResizeItem(footidx_1, 0dip)				
 				' hide lines
 				Dim i As Int = 0
 				For i = 0 To count -1
@@ -510,8 +521,15 @@ Private Sub EventHandler(mapRes As Map) 'ignore
 				clv1.ReplaceAt(uiindex, pnlHead_1, 45dip, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
 				clv1.Refresh
 			Case "expanded"
+				Dim footidx_2 As Int = uiindex + count + 1
+				LogColor("Expanded - " & CRLF & "head index: " & uiindex & CRLF & "count: " & count & CRLF & "foot index: " & footidx_2, Colors.Magenta)
+				If footidx_2 > clv1.Size -1 Then
+					Dim errmsg_2 As String = $"expanded: foot index ${footidx_2} exceed the last index ${clv1.Size -1}!!!"$
+					ToastMessageShow(errmsg_2, True)
+					Return
+				End If
 				' show the foot
-				clv1.ResizeItem(uiindex + count + 1, 45dip)
+				clv1.ResizeItem(footidx_2, 45dip)
 				' show lines
 				Dim j As Int = 0
 				For j = 0 To count -1
@@ -570,17 +588,29 @@ Private Sub ExchangedHandler(i_mapRes As Map)
 				End If
 				If currFootid < uiindex Then 
 					' The larger index do first	i.e. uiindex do first
-					LogIfIndexOutOfBound(513, uiindex)
+					LogIfIndexOutOfBound(513, uiindex)					
 					clv1.ReplaceAt(prevFootId, pnlOFoot, 45dip, objSwipe.CreateItemValue("F_" & oheadid, Array()))
 					clv1.RemoveAt(uiindex)
-					LogIfIndexOutOfBound(516, currFootid)
+					LogIfIndexOutOfBound(558, currFootid)										
 					clv1.ReplaceAt(currFootid, pnlFoot, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+					If i_mapRes.Get("istargetshown") = False Then
+						clv1.ResizeItem(currFootid, 0)
+					End If
 					clv1.InsertAt(currFootid, pnlLine, objSwipe.CreateItemValue(value, Array("換置", "刪除", "修改")))
+					If i_mapRes.Get("istargetshown") = False Then
+						clv1.ResizeItem(currFootid, 0)
+					End If
 				Else
 					' The larger index do first	i.e. currFootid do first
 					LogIfIndexOutOfBound(521, currFootid)						
 					clv1.ReplaceAt(currFootid, pnlFoot, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+					If i_mapRes.Get("istargetshown") = False Then
+						clv1.ResizeItem(currFootid, 0)
+					End If
 					clv1.InsertAt(currFootid, pnlLine, objSwipe.CreateItemValue(value, Array("換置", "刪除", "修改")))
+					If i_mapRes.Get("istargetshown") = False Then
+						clv1.ResizeItem(currFootid, 0)
+					End If
 					LogIfIndexOutOfBound(524, uiindex)
 					clv1.ReplaceAt(prevFootId, pnlOFoot, 45dip, objSwipe.CreateItemValue("F_" & oheadid, Array()))
 					clv1.RemoveAt(uiindex)						
@@ -618,14 +648,26 @@ Private Sub ExchangedHandler(i_mapRes As Map)
 					clv1.RemoveAt(uiindex) 	 ' remove line
 					LogIfIndexOutOfBound(560, uiindex-1)
 					clv1.RemoveAt(uiindex-1) ' remove head
-					LogIfIndexOutOfBound(562, currFootid_1)
+					LogIfIndexOutOfBound(562, currFootid_1)					
 					clv1.ReplaceAt(currFootid_1, pnlFoot_1, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+					If i_mapRes.Get("istargetshown") = False Then
+						clv1.ResizeItem(currFootid_1, 0)
+					End If
 					clv1.InsertAt(currFootid_1, pnlLine_1, objSwipe.CreateItemValue(value_1, Array("換置", "刪除", "修改")))
+					If i_mapRes.Get("istargetshown") = False Then
+						clv1.ResizeItem(currFootid_1, 0)
+					End If
 				Else
 					' The larger index do first i.e. currFootid do first
 					clv1.ReplaceAt(currFootid_1, pnlFoot_1, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+					If i_mapRes.Get("istargetshown") = False Then
+						clv1.ResizeItem(currFootid_1, 0)
+					End If
 					LogIfIndexOutOfBound(568, currFootid_1)
 					clv1.InsertAt(currFootid_1, pnlLine_1, objSwipe.CreateItemValue(value_1, Array("換置", "刪除", "修改")))
+					If i_mapRes.Get("istargetshown") = False Then
+						clv1.ResizeItem(currFootid_1, 0)
+					End If
 					LogIfIndexOutOfBound(570, uiindex+1)
 					clv1.RemoveAt(uiindex+1) ' remove foot
 					LogIfIndexOutOfBound(572, uiindex)
@@ -692,17 +734,27 @@ Private Sub ExchangedHandler(i_mapRes As Map)
 				If OLineid_3 = -1 Then
 					Return
 				End If
-				' Must add before delete
 				Dim value_3 As String = $"L_${headid}_${OLineid_3}"$
-				clv1.Add(pnlHead_3, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
-				clv1.Add(pnlLine_3, objSwipe.CreateItemValue(value_3, Array("換置", "刪除", "修改")))
-				clv1.Add(pnlFoot_3, objSwipe.CreateItemValue("F_" & headid, Array()))
-				LogIfIndexOutOfBound(641, uiindex+1)
-				clv1.RemoveAt(uiindex+1) ' remove foot
-				LogIfIndexOutOfBound(643, uiindex)
-				clv1.RemoveAt(uiindex) 	 ' remove line
-				LogIfIndexOutOfBound(646, uiindex-1)
-				clv1.RemoveAt(uiindex-1) ' remove head				
+				If (uiindex+1 = clv1.Size -1) Then
+					' replace header one for one
+					clv1.ReplaceAt(uiindex-1, pnlHead_3, 45dip, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
+					' replace line one for one
+					clv1.ReplaceAt(uiindex, pnlLine_3, 40dip, objSwipe.CreateItemValue(value_3, Array("換置", "刪除", "修改")))
+					' replace footer one for one
+					clv1.ReplaceAt(uiindex+1, pnlFoot_3, 45dip, objSwipe.CreateItemValue("F_" & headid, Array()))
+					clv1.Refresh
+				Else
+					' Must add before delete
+					clv1.Add(pnlHead_3, objSwipe.CreateItemValue("H_" & headid, Array("刪除", "修改", "詳細資料")))
+					clv1.Add(pnlLine_3, objSwipe.CreateItemValue(value_3, Array("換置", "刪除", "修改")))
+					clv1.Add(pnlFoot_3, objSwipe.CreateItemValue("F_" & headid, Array()))
+					LogIfIndexOutOfBound(641, uiindex+1)
+					clv1.RemoveAt(uiindex+1) ' remove foot
+					LogIfIndexOutOfBound(643, uiindex)
+					clv1.RemoveAt(uiindex) 	 ' remove line
+					LogIfIndexOutOfBound(646, uiindex-1)
+					clv1.RemoveAt(uiindex-1) ' remove head
+				End If
 				timer.Enabled = True
 				Wait For timer_tick
 				timer.Enabled = False
